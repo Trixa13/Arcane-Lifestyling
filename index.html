@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Rebuild Mode</title>
+  <style>
+    :root{
+      --bg:#100d1b;
+      --bg2:#090714;
+      --panel:#1b1630;
+      --panel2:#272046;
+      --text:#faf7ff;
+      --muted:#c8c1e6;
+      --accent:#a789ff;
+      --accent2:#dcc7ff;
+      --glow:#8f74ff55;
+      --good:#7fe0a1;
+      --warn:#f8cf77;
+      --shadow:0 16px 42px rgba(0,0,0,.42);
+      --ring:rgba(167,137,255,.35);
+      --sparkA:rgba(255,255,255,.18);
+      --sparkB:rgba(220,199,255,.12);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, var(--sparkA), transparent 20%),
+        radial-gradient(circle at 85% 15%, var(--sparkB), transparent 24%),
+        radial-gradient(circle at 50% -10%, var(--glow), transparent 40%),
+        linear-gradient(180deg,var(--bg),var(--bg2) 85%);
+      color:var(--text);
+      min-height:100vh;
+      padding:calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 106px);
+      transition:background .45s ease,color .35s ease;
+    }
+    .app{max-width:430px;margin:0 auto}
+    .hero,.card,.status{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .hero{
+      background:linear-gradient(160deg, color-mix(in srgb, var(--panel) 92%, white 8%), color-mix(in srgb, var(--panel2) 88%, black 12%));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:30px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+      isolation:isolate;
+    }
+    .hero:before,.hero:after{
+      content:"";position:absolute;border-radius:50%;pointer-events:none;
+      filter:blur(10px);opacity:.9;z-index:-1;
+    }
+    .hero:before{right:-34px;top:-30px;width:160px;height:160px;background:radial-gradient(circle,var(--ring),transparent 72%)}
+    .hero:after{left:-20px;bottom:-50px;width:140px;height:140px;background:radial-gradient(circle,var(--sparkB),transparent 68%)}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent2);font-weight:800}
+    h1{margin:6px 0 4px;font-size:31px;line-height:1.05}
+    .sub{margin:0;color:var(--muted);font-size:14px;line-height:1.4}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .chip{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:12px}
+    .grid{display:grid;gap:14px;margin-top:14px}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:24px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .card:after{content:"";position:absolute;inset:auto -20px -30px auto;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 72%);pointer-events:none}
+    .card h2{font-size:17px;margin:0 0 12px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{background:rgba(0,0,0,.16);border-radius:18px;padding:12px;border:1px solid rgba(255,255,255,.05)}
+    .label{font-size:12px;color:var(--muted);margin-bottom:8px}
+    .value{font-size:22px;font-weight:800}
+    .bar{height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:8px}
+    .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;border-radius:999px;transition:width .35s ease;box-shadow:0 0 18px var(--glow)}
+    .paletteRow{display:flex;gap:10px;overflow:auto;padding-bottom:4px;scrollbar-width:none}
+    .paletteRow::-webkit-scrollbar{display:none}
+    .themeBtn{min-width:104px;border:none;border-radius:18px;padding:12px 10px;color:white;font-weight:800;font-size:12px;box-shadow:var(--shadow);position:relative}
+    .themeBtn small{display:block;opacity:.85;font-weight:600;font-size:10px;margin-top:2px}
+    .themeBtn.active{outline:2px solid rgba(255,255,255,.95);outline-offset:2px}
+    .quest{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:rgba(0,0,0,.16);margin-bottom:10px;border:1px solid rgba(255,255,255,.05);position:relative}
+    .quest.done{box-shadow:0 0 0 1px color-mix(in srgb, var(--accent2) 35%, transparent), 0 0 24px color-mix(in srgb, var(--glow) 60%, transparent)}
+    .quest:last-child{margin-bottom:0}
+    .quest input{width:24px;height:24px;accent-color:var(--accent);flex:0 0 auto}
+    .questTitle{font-weight:800;font-size:15px}
+    .questMeta{font-size:12px;color:var(--muted)}
+    .pill{margin-left:auto;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:12px;white-space:nowrap}
+    .modeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .modeBtn,.miniBtn,.primaryBtn{border:none;color:var(--text);background:rgba(255,255,255,.07);border-radius:16px;padding:12px;font-weight:800}
+    .modeBtn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#140f1f;box-shadow:0 0 18px var(--glow)}
+    select{width:100%;background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;font-size:14px}
+    option{color:#111}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .footer{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(env(safe-area-inset-bottom) + 10px);background:linear-gradient(180deg,transparent,rgba(5,8,18,.72) 26%,rgba(5,8,18,.97))}
+    .footerInner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+    .status{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow)}
+    .status .tiny{font-size:12px;color:var(--muted)}
+    .status .big{font-size:18px;font-weight:800}
+    .primaryBtn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#140f1f;padding:16px 18px;border-radius:20px;min-width:120px;box-shadow:0 0 20px var(--glow)}
+    .small{font-size:12px;color:var(--muted);line-height:1.4}
+    .suggestion{margin-top:10px;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+    .suggestion strong{display:block;margin-bottom:4px}
+    .note{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent2);font-weight:800}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="eyebrow">Adaptive Life RPG</div>
+      <h1>Rebuild Mode</h1>
+      <p class="sub">Mystical, gamey, and built for real life. Your app shifts with your season instead of acting like every week has the same energy.</p>
+      <div class="chips">
+        <div class="chip">🛡️ Guardian</div>
+        <div class="chip">🧠 Mage</div>
+        <div class="chip">🗡️ Rogue</div>
+        <div class="chip">🎓 Fall-ready</div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Choose your skin</h2>
+        <div class="paletteRow" id="paletteRow"></div>
+        <div class="suggestion" id="themeSuggestion">
+          <div class="note">Mood match</div>
+          <strong>Arcane Scholar</strong>
+          <span class="small">Best for steady weeks and quiet momentum.</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Character sheet</h2>
+        <div class="stats">
+          <div class="stat"><div class="label">Level</div><div class="value" id="level">1</div></div>
+          <div class="stat"><div class="label">Total XP</div><div class="value" id="xp">0</div></div>
+          <div class="stat"><div class="label">Mode</div><div class="value" id="modeName" style="font-size:18px">Normal</div></div>
+          <div class="stat"><div class="label">Win condition</div><div class="value" id="winGoal" style="font-size:18px">3 quests</div></div>
+        </div>
+        <div class="label" style="margin-top:12px">Progress to next level</div>
+        <div class="bar"><div class="fill" id="xpBar"></div></div>
+      </section>
+
+      <section class="card">
+        <h2>Life mode</h2>
+        <div class="modeGrid" id="modeGrid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Weekly check-in</h2>
+        <div class="row">
+          <select id="stress">
+            <option value="low">Stress: low</option>
+            <option value="medium" selected>Stress: medium</option>
+            <option value="high">Stress: high</option>
+          </select>
+          <select id="time">
+            <option value="45">Time: 45+ min</option>
+            <option value="20" selected>Time: 20 min</option>
+            <option value="10">Time: 10 min</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <select id="priority">
+            <option value="balanced" selected>Priority: balanced</option>
+            <option value="strength">Priority: strength</option>
+            <option value="vitality">Priority: vitality</option>
+            <option value="stability">Priority: stability</option>
+            <option value="academics">Priority: academics</option>
+          </select>
+          <button class="miniBtn" id="applyCheckin">Apply check-in</button>
+        </div>
+        <p class="small" style="margin:10px 0 0">This also suggests the best skin for your current energy: soft recovery, steady scholar, or astral power.</p>
+      </section>
+
+      <section class="card">
+        <h2>Today’s quests</h2>
+        <div id="quests"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footerInner">
+      <div class="status">
+        <div class="tiny">Today</div>
+        <div class="big" id="todayStatus">0 / 3 quests</div>
+      </div>
+      <button class="primaryBtn" id="newDay">New day</button>
+    </div>
+  </div>
+
+<script>
+const themes = {
+  scholar:{
+    name:'Arcane Scholar', subtitle:'steady magic',
+    bg:'#100d1b', bg2:'#090714', panel:'#1b1630', panel2:'#272046', text:'#faf7ff', muted:'#c8c1e6',
+    accent:'#a789ff', accent2:'#dcc7ff', glow:'#8f74ff55', ring:'rgba(167,137,255,.32)', sparkA:'rgba(255,255,255,.16)', sparkB:'rgba(220,199,255,.12)'
+  },
+  pastel:{
+    name:'Pastel Arcane', subtitle:'recovery aura',
+    bg:'#201426', bg2:'#130d1b', panel:'#34213d', panel2:'#4a3254', text:'#fff7fd', muted:'#ecd6eb',
+    accent:'#f2a7d8', accent2:'#cbb8ff', glow:'#f1b1dc4d', ring:'rgba(242,167,216,.28)', sparkA:'rgba(255,255,255,.20)', sparkB:'rgba(203,184,255,.14)'
+  },
+  astral:{
+    name:'Astral Arcane', subtitle:'power mode',
+    bg:'#0b1022', bg2:'#060913', panel:'#151b38', panel2:'#1f2750', text:'#fcfbff', muted:'#d5d2ea',
+    accent:'#8d7cff', accent2:'#f3cf77', glow:'#a98dff55', ring:'rgba(243,207,119,.22)', sparkA:'rgba(255,255,255,.18)', sparkB:'rgba(243,207,119,.11)'
+  }
+};
+const modes = {
+  normal:{name:'Normal',goal:3}, busy:{name:'Busy',goal:2}, school:{name:'School',goal:2}, finals:{name:'Finals',goal:1}, recovery:{name:'Recovery',goal:1}
+};
+const questBank = {
+  normal:[['🏋️ Gym / movement',20,'Strength'],['🍳 Protein anchor',10,'Vitality'],['☀️ Go outside',10,'Stability'],['🧴 Gentle hair care',10,'Vitality'],['😴 Sleep upgrade',15,'Stability'],['🧠 5 min reset',10,'Stability']],
+  busy:[['🍳 Pack or eat protein',15,'Vitality'],['🧠 5 min reset',10,'Stability'],['🚶 10 min walk',10,'Strength'],['🧴 Gentle hair care',10,'Vitality'],['📋 Do one important task',15,'Stability']],
+  school:[['🎓 Attend class / study block',20,'Academics'],['🍱 Pack food or protein',15,'Vitality'],['🚶 Reset walk',10,'Stability'],['🧴 Gentle hair care',10,'Vitality'],['📚 Review notes',15,'Academics'],['💤 Sleep boundary',15,'Stability']],
+  finals:[['🎓 Survive one study block',20,'Academics'],['💧 Water + protein',15,'Vitality'],['🧠 3 min breathe',10,'Stability'],['🛁 Tiny reset',10,'Stability']],
+  recovery:[['💧 Hydrate + protein',15,'Vitality'],['🧠 Total rest minute',10,'Stability'],['🧴 Gentle hair care',10,'Vitality'],['🌙 Earlier bedtime',15,'Stability']]
+};
+let state = JSON.parse(localStorage.getItem('rebuildModeMysticalState')||'null') || {theme:'scholar',mode:'normal',xp:0,completed:[],quests:[]};
+function save(){localStorage.setItem('rebuildModeMysticalState',JSON.stringify(state));}
+function setVar(name,val){document.documentElement.style.setProperty(name,val)}
+function applyTheme(key){
+  state.theme=key; const t=themes[key];
+  setVar('--bg',t.bg); setVar('--bg2',t.bg2); setVar('--panel',t.panel); setVar('--panel2',t.panel2);
+  setVar('--text',t.text); setVar('--muted',t.muted); setVar('--accent',t.accent); setVar('--accent2',t.accent2);
+  setVar('--glow',t.glow); setVar('--ring',t.ring); setVar('--sparkA',t.sparkA); setVar('--sparkB',t.sparkB);
+  document.querySelectorAll('.themeBtn').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===key));
+  save();
+}
+function renderPalettes(){
+  const row=document.getElementById('paletteRow'); row.innerHTML='';
+  Object.entries(themes).forEach(([key,t])=>{
+    const btn=document.createElement('button'); btn.className='themeBtn'; btn.dataset.theme=key;
+    btn.innerHTML=`${t.name}<small>${t.subtitle}</small>`;
+    btn.style.background=`linear-gradient(135deg, ${t.accent}, ${t.accent2})`;
+    btn.onclick=()=>applyTheme(key); row.appendChild(btn);
+  });
+}
+function generateQuests(){
+  state.completed=[];
+  const pool=[...questBank[state.mode]];
+  state.quests=pool.slice(0, Math.min(pool.length, 5));
+  save(); renderQuests(); renderStats();
+}
+function renderModes(){
+  const grid=document.getElementById('modeGrid'); grid.innerHTML='';
+  Object.entries(modes).forEach(([key,m])=>{
+    const b=document.createElement('button'); b.className='modeBtn'+(state.mode===key?' active':''); b.textContent=m.name;
+    b.onclick=()=>{state.mode=key; generateQuests(); renderModes(); suggestTheme();}; grid.appendChild(b);
+  });
+}
+function renderQuests(){
+  const wrap=document.getElementById('quests'); wrap.innerHTML='';
+  state.quests.forEach((q,i)=>{
+    const div=document.createElement('label'); div.className='quest'+(state.completed.includes(i)?' done':'');
+    const checked=state.completed.includes(i);
+    div.innerHTML=`<input type="checkbox" ${checked?'checked':''}><div><div class="questTitle">${q[0]}</div><div class="questMeta">${q[2]}</div></div><div class="pill">+${q[1]} XP</div>`;
+    const input=div.querySelector('input');
+    input.onchange=()=>{
+      if(input.checked && !state.completed.includes(i)){ state.completed.push(i); state.xp += q[1]; }
+      if(!input.checked && state.completed.includes(i)){ state.completed = state.completed.filter(x=>x!==i); state.xp -= q[1]; }
+      save(); renderQuests(); renderStats();
+    };
+    wrap.appendChild(div);
+  });
+}
+function renderStats(){
+  const level=Math.floor(state.xp/100)+1; const progress=state.xp%100;
+  document.getElementById('xp').textContent=state.xp;
+  document.getElementById('level').textContent=level;
+  document.getElementById('modeName').textContent=modes[state.mode].name;
+  document.getElementById('winGoal').textContent=`${modes[state.mode].goal} quest${modes[state.mode].goal>1?'s':''}`;
+  document.getElementById('todayStatus').textContent=`${state.completed.length} / ${modes[state.mode].goal} quest${modes[state.mode].goal>1?'s':''}`;
+  document.getElementById('xpBar').style.width=progress+'%';
+}
+function suggestTheme(autoApply=false){
+  const stress=document.getElementById('stress').value;
+  const time=document.getElementById('time').value;
+  const priority=document.getElementById('priority').value;
+  let suggested='scholar', title='Arcane Scholar', text='Best for steady weeks and quiet momentum.';
+  if(state.mode==='recovery' || stress==='high' && time==='10') {
+    suggested='pastel'; title='Pastel Arcane'; text='Best for low-energy or overwhelmed weeks when softness keeps you from spiraling.';
+  } else if(state.mode==='finals' || priority==='strength' || (stress==='low' && time==='45')) {
+    suggested='astral'; title='Astral Arcane'; text='Best for focused momentum, power days, and “I can do this” energy.';
+  }
+  const box=document.getElementById('themeSuggestion');
+  box.innerHTML=`<div class="note">Mood match</div><strong>${title}</strong><span class="small">${text}</span>`;
+  if(autoApply) applyTheme(suggested);
+}
+function applyCheckin(){
+  const stress=document.getElementById('stress').value;
+  const time=document.getElementById('time').value;
+  const priority=document.getElementById('priority').value;
+  if(stress==='high' && priority==='academics') state.mode='finals';
+  else if(priority==='academics') state.mode='school';
+  else if(stress==='high' || time==='10') state.mode='recovery';
+  else if(stress==='medium' || time==='20') state.mode='busy';
+  else state.mode='normal';
+
+  if(priority==='strength' && state.mode==='normal') state.quests=[questBank.normal[0],questBank.normal[2],questBank.normal[1],questBank.normal[4],questBank.normal[5]];
+  else if(priority==='vitality') state.quests=[questBank[state.mode][1]||questBank[state.mode][0],['🧴 Gentle hair care',10,'Vitality'],['💆 Scalp massage',5,'Vitality'],['🍳 Protein anchor',10,'Vitality'],['🌙 Sleep support',15,'Stability']];
+  else if(priority==='stability') state.quests=[['🧠 5 min reset',10,'Stability'],['☀️ Step outside',10,'Stability'],['🌙 Sleep boundary',15,'Stability'],['📋 One important thing',15,'Stability'],['🍳 Protein anchor',10,'Vitality']];
+  else generateQuests();
+
+  state.completed=[]; save(); renderModes(); renderQuests(); renderStats(); suggestTheme(true);
+}
+
+document.getElementById('applyCheckin').onclick=applyCheckin;
+document.getElementById('newDay').onclick=generateQuests;
+renderPalettes(); applyTheme(state.theme); renderModes(); suggestTheme(false); if(!state.quests.length) generateQuests(); else {renderQuests(); renderStats();}
+</script>
+</body>
+</html>
